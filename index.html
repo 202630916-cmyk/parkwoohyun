@@ -77,7 +77,7 @@
 
     /* Demo Panel */
     .demo-panel { background-color: var(--bg-sub); padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 12px; display: flex; gap: 10px; align-items: center; overflow-x: auto; white-space: nowrap; }
-    .demo-btn { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 11px; font-weight: 600; cursor: pointer; color: var(--text-main); }
+    .demo-btn { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; color: var(--text-main); }
     .demo-btn:active { transform: scale(0.96); }
 
     /* Alert Banner */
@@ -106,7 +106,7 @@
     .list-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
     .list-row:last-child { border-bottom: none; }
     .list-info { display: flex; align-items: center; gap: 12px; }
-    .list-icon { width: 40px; height: 40px; border-radius: 50%; background-color: var(--bg-sub); display: flex; align-items: center; justify-content: center; }
+    .list-icon { width: 40px; height: 40px; border-radius: 50%; background-color: var(--bg-sub); display: flex; align-items: center; justify-content: center; font-size: 18px; }
     .list-text { display: flex; flex-direction: column; gap: 2px; }
     .list-title { font-size: 15px; font-weight: 600; color: var(--text-main); }
     .list-desc { font-size: 13px; color: var(--text-sub); }
@@ -148,18 +148,12 @@
     .form-input { height: 48px; border-radius: var(--radius-sm); border: 1px solid var(--border); padding: 0 14px; font-size: 15px; background-color: var(--bg-sub); color: var(--text-main); outline: none; }
     .form-input:focus { border-color: var(--primary); }
 
-    /* Donut Chart SVG */
-    .chart-box { display: flex; align-items: center; justify-content: space-around; }
-    .donut-chart { transform: rotate(-90deg); width: 100px; height: 100px; }
-    .donut-ring { fill: transparent; stroke: var(--bg-sub); stroke-width: 4; }
-    .donut-segment { fill: transparent; stroke: var(--primary); stroke-width: 4; stroke-dasharray: 251.2; transition: stroke-dashoffset 0.5s; }
-
-    /* School Map CSS Grid */
+    /* School Map Grid */
     .map-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background-color: var(--bg-sub); padding: 12px; border-radius: var(--radius-md); position: relative; }
-    .map-room { background-color: var(--bg-card); border-radius: var(--radius-sm); padding: 14px 8px; font-size: 12px; font-weight: 700; text-align: center; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .map-room { background-color: var(--bg-card); border-radius: var(--radius-sm); padding: 14px 8px; font-size: 12px; font-weight: 700; text-align: center; border: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
     .map-room.my-class { border: 2px solid var(--primary); background-color: var(--primary-light); }
 
-    /* Table Responsive Card Fallback */
+    /* Table Responsive Fallback */
     .admin-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
     .admin-table th, .admin-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border); }
     @media (max-width: 600px) {
@@ -244,20 +238,9 @@
   </div>
 
   <script>
-    /================================================================
-     * [0] 설정 및 텍스트 데이터 (사용자 수정 영역)
-     ================================================================/
-    const SCORE_RULES = {
-      CHARGE_BEFORE_DISMISSAL: 10,
-      BATTERY_80_AT_ARRIVAL: 10,
-      RETURN_AUX_ON_TIME: 15,
-      RETURN_AUX_LATE: -10,
-      BRING_REGISTERED_AUX: 5,
-      LEFT_BEHIND_WARNING: -5,
-      REPORT_FAULT: 5,
-      ACTION_AFTER_ALERT: 5
-    };
-
+    // ================================================================
+    // [0] 설정 및 텍스트 데이터
+    // ================================================================
     const TEACHER_DATA = {
       homeroom: "이○○ 선생님",
       gradeClass: "2학년 3반",
@@ -287,18 +270,30 @@
       },
       warnings: {
         lowBattery: "🚨 내 디벗 배터리가 20% 이하입니다! 충전이 필요합니다.",
-        leftBehind: "⚠️ 등록한 보조배터리를 교실에 두고 나왔어요! 확인해 보세요.",
-        overdue: "⏰ 대여 중인 보조배터리 반납 시간이 초과되었습니다!"
+        leftBehind: "⚠️ 등록한 보조배터리를 교실에 두고 나왔어요! 확인해 보세요."
       }
     };
 
-    /================================================================
-     * [1] 앱 데이터 State 초기화
-     ================================================================/
+    // ================================================================
+    // [1] 앱 데이터 State 초기화
+    // ================================================================
+    function loadStorage(key, fallback) {
+      try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function saveStorage(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+    }
+
     let state = {
       activeTab: 'home',
       adminMode: false,
-      currentTime: "10:15", // 시연 가상 시간
+      currentTime: "10:15",
       myDibotId: 12,
       dibots: Array.from({ length: 25 }, (_, i) => ({
         id: i + 1,
@@ -329,27 +324,13 @@
         { id: 1, title: "배터리 충전 알림", msg: "3교시 영어(디벗) 수업 10분 전입니다. 현재 잔량 32%", read: false, time: "10:40" },
         { id: 2, title: "대여 안내", msg: "보조배터리 BB-01 대여가 완료되었습니다.", read: true, time: "09:00" }
       ],
-      rentedCount: 1,
       mapFloor: 1,
       viewModeDibot: 'cabinet'
     };
 
-    function loadStorage(key, fallback) {
-      try {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : fallback;
-      } catch (e) {
-        return fallback;
-      }
-    }
-
-    function saveStorage(key, value) {
-      try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
-    }
-
-    /================================================================
-     * [2] 알림 및 유틸리티 함수
-     ================================================================/
+    // ================================================================
+    // [2] 헬퍼 함수
+    // ================================================================
     function escapeHtml(str) {
       return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
     }
@@ -364,17 +345,16 @@
 
     function getReadiness() {
       const myDibot = state.dibots.find(d => d.id === state.myDibotId);
-      // 필요 배터리 계산: 소요시간 45분 * 15 / 60 = 11.25%
-      const required = 11.25;
+      const required = 11.25; // 45분 수업 소요량
       const margin = myDibot.battery - required;
       if (margin >= 20) return { grade: "안전", key: "safe", color: "var(--primary-dark)" };
       if (margin >= 0) return { grade: "주의", key: "caution", color: "var(--warn)" };
       return { grade: "위험", key: "danger", color: "var(--danger)" };
     }
 
-    /================================================================
-     * [3] 렌더링 코어 엔진
-     ================================================================/
+    // ================================================================
+    // [3] 렌더링 엔진
+    // ================================================================
     function render() {
       // 1. 헤더 실시간 정보 & 알림 배지
       document.getElementById('unread-count').innerText = state.notifications.filter(n => !n.read).length;
@@ -413,10 +393,9 @@
       }
     }
 
-    /================================================================
-     * [4] 탭별 화면 UI 빌더
-     ================================================================/
-    // ① 홈 탭
+    // ================================================================
+    // [4] 화면 템플릿
+    // ================================================================
     function renderHomeTab() {
       const myDibot = state.dibots.find(d => d.id === state.myDibotId);
       const readiness = getReadiness();
@@ -438,7 +417,7 @@
           <div class="big-stat">
             ${myDibot.battery}<span class="unit">%</span>
             <span style="font-size:14px; font-weight:600; color:var(--text-sub); margin-left:auto;">
-              ${myDibot.isCharging ? '⚡ 충전 중 (완충까지 24분)' : '🔋 사용 중 (약 3시간 가능)'}
+              ${myDibot.isCharging ? '⚡ 충전 중' : '🔋 사용 중'}
             </span>
           </div>
           <div style="background-color:var(--bg-sub); padding:12px; border-radius:var(--radius-sm); font-size:13px;">
@@ -473,19 +452,19 @@
           <div class="card-title"><span>✅ 오늘의 충전 체크리스트</span></div>
           <div class="list-row" onclick="toggleChecklist('c1')">
             <div class="list-info">
-              <input type="checkbox" ${state.checklist.c1 ? 'checked' : ''} pointer-events="none">
+              <input type="checkbox" ${state.checklist.c1 ? 'checked' : ''} style="pointer-events:none;">
               <span class="list-title">디벗 충전기 가방에 챙기기</span>
             </div>
           </div>
           <div class="list-row" onclick="toggleChecklist('c2')">
             <div class="list-info">
-              <input type="checkbox" ${state.checklist.c2 ? 'checked' : ''} pointer-events="none">
+              <input type="checkbox" ${state.checklist.c2 ? 'checked' : ''} style="pointer-events:none;">
               <span class="list-title">등록한 보조배터리 충전 상태 확인</span>
             </div>
           </div>
           <div class="list-row" onclick="toggleChecklist('c3')">
             <div class="list-info">
-              <input type="checkbox" ${state.checklist.c3 ? 'checked' : ''} pointer-events="none">
+              <input type="checkbox" ${state.checklist.c3 ? 'checked' : ''} style="pointer-events:none;">
               <span class="list-title">하교 전 디벗 충전함에 꽂기 (+10점)</span>
             </div>
           </div>
@@ -493,11 +472,9 @@
 
         <div class="card">
           <div class="card-title"><span>🏆 나의 충전 습관 등급</span></div>
-          <div style="display:flex; align-items:center; justify-content:space-between;">
-            <div>
-              <div style="font-size:22px; font-weight:800;">${habitInfo.name} (${state.score}점)</div>
-              <div style="font-size:13px; color:var(--text-sub); margin-top:4px;">${habitText.desc}</div>
-            </div>
+          <div>
+            <div style="font-size:22px; font-weight:800;">${habitInfo.name} (${state.score}점)</div>
+            <div style="font-size:13px; color:var(--text-sub); margin-top:4px;">${habitText.desc}</div>
           </div>
           <div style="font-size:12px; background:var(--primary-light); color:var(--primary-dark); padding:10px; border-radius:8px;">
             💡 <strong>점수 UP 팁:</strong> ${habitText.tip}
@@ -506,7 +483,6 @@
       `;
     }
 
-    // ② 디벗 탭
     function renderDibotTab() {
       const cells = state.dibots.map(d => {
         const isNearOutlet = d.id >= 21;
@@ -529,7 +505,7 @@
             <button class="segmented-btn ${state.viewModeDibot === 'cabinet' ? 'active' : ''}" onclick="setDibotView('cabinet')">보관함 보기</button>
             <button class="segmented-btn ${state.viewModeDibot === 'seat' ? 'active' : ''}" onclick="setDibotView('seat')">좌석 보기 (콘센트)</button>
           </div>
-          ${state.viewModeDibot === 'seat' ? '<div style="font-size:11px; color:var(--text-sub); text-align:right;">* 뒷줄(21~25번) 콘센트 12구 인접</div>' : ''}
+          ${state.viewModeDibot === 'seat' ? '<div style="font-size:11px; color:var(--text-sub); text-align:right;">* 뒷줄(21~25번) 콘센트 인접</div>' : ''}
           <div class="grid-5x5">${cells}</div>
         </div>
 
@@ -557,14 +533,13 @@
       `;
     }
 
-    // ③ 보조배터리 탭
     function renderAuxTab() {
       return `
         <div class="card">
           <div class="card-title"><span>학교 비치 보조배터리 (총 12대)</span></div>
           <div class="chip-group">
             <button class="chip active">전체 보기</button>
-            <button class="chip" onclick="alert('노트북 충전 가능(45W 이상) 기기만 필터링 되었습니다.')">💻 노트북 충전 가능만</button>
+            <button class="chip" onclick="alert('노트북 충전 가능(45W 이상) 기기만 표시됩니다.')">💻 노트북 충전 가능만</button>
           </div>
           <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
             ${state.auxBatteries.map(a => `
@@ -572,7 +547,7 @@
                 <div class="list-info">
                   <div class="list-icon">🔋</div>
                   <div class="list-text">
-                    <span class="list-title">${a.id} <small style="font-weight:400; color:var(--text-sub);">(${a.capacity}mAh / ${a.watt}W)</small></span>
+                    <span class="list-title">${a.id} <small style="font-weight:400; color:var(--text-sub);">(${a.capacity}mAh)</small></span>
                     <span class="list-desc">위치: ${a.location} \vert{} 상태: ${a.status}</span>
                   </div>
                 </div>
@@ -586,7 +561,6 @@
       `;
     }
 
-    // ④ 내 보조배터리 탭
     function renderMyAuxTab() {
       return `
         <div class="card">
@@ -614,7 +588,6 @@
       `;
     }
 
-    // ⑤ 지도·대여 탭
     function renderMapTab() {
       return `
         <div class="card">
@@ -631,14 +604,14 @@
             <div class="map-room" onclick="alert('충전 스테이션 1: 대여 가능 4개')">
               <span>🔋 스테이션1</span>
             </div>
-            <div class="map-room"><span>과학실</span></div>
-            <div class="map-room"><span>도서관</span></div>
+            <div class="map-room" onclick="alert('과학실')"><span>과학실</span></div>
+            <div class="map-room" onclick="alert('도서관')"><span>도서관</span></div>
             <div class="map-room" onclick="alert('충전 스테이션 2: 대여 가능 2개')">
               <span>🔋 스테이션2</span>
             </div>
-            <div class="map-room"><span>교무실</span></div>
-            <div class="map-room"><span>급식실</span></div>
-            <div class="map-room"><span>교문</span></div>
+            <div class="map-room" onclick="alert('교무실')"><span>교무실</span></div>
+            <div class="map-room" onclick="alert('급식실')"><span>급식실</span></div>
+            <div class="map-room" onclick="alert('교문')"><span>교문</span></div>
           </div>
         </div>
 
@@ -648,7 +621,6 @@
       `;
     }
 
-    // ⑥ 관리자 화면
     function renderAdminView() {
       const unchargedDibots = state.dibots.filter(d => d.battery < 50).length;
       const overdueAux = state.auxBatteries.filter(a => a.status === '대여 중').length;
@@ -680,9 +652,9 @@
       `;
     }
 
-    /================================================================
-     * [5] 이벤트 핸들러 및 시트 모달 액션
-     ================================================================/
+    // ================================================================
+    // [5] 이벤트 핸들러 및 시트 모달
+    // ================================================================
     function switchTab(tab) {
       state.activeTab = tab;
       render();
@@ -720,28 +692,26 @@
       }
     }
 
-    // 디벗 상세 시트
     function showDibotDetail(id) {
       const item = state.dibots.find(d => d.id === id);
       openSheet(`
         <h3>💻 디벗 상세 정보 (#${item.id})</h3>
-        <p style="color:var(--text-sub); font-size:14px;">소유자: ${item.studentName}</p>
+        <p style="color:var(--text-sub); font-size:14px; margin-top:4px;">소유자: ${item.studentName}</p>
         <div style="margin:16px 0; font-size:28px; font-weight:800;">
-          ${item.battery}% <small style="font-size:14px; font-weight:400;">(${item.isCharging ? '충전 중' : '방전 중'})</small>
+          ${item.battery}% <small style="font-size:14px; font-weight:400;">(${item.isCharging ? '충전 중' : '사용 중'})</small>
         </div>
         <p><strong>위치:</strong> ${item.location}</p>
-        <p><strong>배터리 건강 상태:</strong> ${item.health}</p>
+        <p style="margin-top:4px;"><strong>배터리 상태:</strong> ${item.health}</p>
         <button class="btn" style="margin-top:16px;" onclick="closeSheet()">확인</button>
       `);
     }
 
-    // 보조배터리 상세 및 고장신고 시트
     function showAuxDetail(id) {
       const item = state.auxBatteries.find(a => a.id === id);
       openSheet(`
         <h3>🔋 보조배터리 ${item.id}</h3>
         <p style="margin-top:8px;"><strong>잔량:</strong> ${item.battery}% | <strong>상태:</strong> ${item.status}</p>
-        <p><strong>노트북 충전 가능 여부:</strong> ${item.canChargeLaptop ? '가능 (45W PD)' : '불가'}</p>
+        <p style="margin-top:4px;"><strong>노트북 충전:</strong> ${item.canChargeLaptop ? '가능 (45W PD)' : '불가'}</p>
         ${item.faultReport ? `
           <div style="background:var(--danger-bg); color:var(--danger); padding:10px; border-radius:8px; margin-top:10px;">
             ⚠️ <strong>고장 신고 내용:</strong> ${item.faultReport.symptom} (신고자: ${item.faultReport.reporter})
@@ -754,14 +724,13 @@
       `);
     }
 
-    // 대여 완료 모달 (가짜 SVG QR 생성)
     function openRentSheet() {
       const avail = state.auxBatteries.find(a => a.status === '충전 완료');
       if (!avail) {
         openSheet(`
           <h3>⚠️ 대여 불가</h3>
           <p style="margin:12px 0;">현재 사용 가능한 보조배터리가 없습니다.</p>
-          <button class="btn" onclick="closeSheet()">대기 신청하기 (순번 1번)</button>
+          <button class="btn" onclick="closeSheet()">대기 신청하기</button>
         `);
         return;
       }
@@ -770,7 +739,6 @@
         <h3>⚡ 보조배터리 대여 확인</h3>
         <p style="margin-top:8px;">대여 기기: <strong>${avail.id}</strong> (${avail.capacity}mAh)</p>
         <div style="text-align:center; margin:20px 0;">
-          <!-- SVG QR Code Demo -->
           <svg width="120" height="120" viewBox="0 0 100 100">
             <rect width="100" height="100" fill="white"/>
             <path d="M0 0h30v30H0zM70 0h30v30H70zM0 70h30v30H0z" fill="black"/>
@@ -805,7 +773,6 @@
       alert('고장 신고가 접수되었습니다.');
     }
 
-    // 내 보조배터리 등록 시트
     function openRegisterMyAuxSheet() {
       openSheet(`
         <h3>➕ 내 보조배터리 등록</h3>
@@ -851,7 +818,7 @@
 
     function openNotifications() {
       const items = state.notifications.map(n => `
-        <div class="list-row" onclick="n.read=true; render();">
+        <div class="list-row" onclick="readNoti(${n.id})">
           <div class="list-text">
             <span class="list-title">${escapeHtml(n.title)}</span>
             <span class="list-desc">${escapeHtml(n.msg)}</span>
@@ -864,13 +831,17 @@
         <h3>🔔 알림 센터</h3>
         <div style="margin-top:12px;">${items.length ? items : '알림이 없습니다.'}</div>
       `);
-      state.notifications.forEach(n => n.read = true);
+    }
+
+    function readNoti(id) {
+      const target = state.notifications.find(n => n.id === id);
+      if (target) target.read = true;
       render();
     }
 
-    /================================================================
-     * [6] 시연 패널 가상 시뮬레이션
-     ================================================================/
+    // ================================================================
+    // [6] 시연용 가상 컨트롤
+    // ================================================================
     function demoFastForward() {
       state.dibots.forEach(d => {
         if (d.isCharging) d.battery = Math.min(100, d.battery + 8);
@@ -899,13 +870,14 @@
       }
     }
 
-    // 5초마다 자동 데이터 미세 변동 시뮬레이션
+    // 시계 갱신
     setInterval(() => {
       const now = new Date();
-      document.getElementById('last-updated-time').innerText = now.toTimeString().split(' ')[0];
-    }, 5000);
+      const clock = document.getElementById('last-updated-time');
+      if (clock) clock.innerText = now.toTimeString().split(' ')[0];
+    }, 1000);
 
-    // 초기 실행
+    // 최초 화면 렌더링
     render();
   </script>
 </body>
